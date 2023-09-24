@@ -41,13 +41,12 @@ async def update_listing_by_id(db: Session, user_id: int, chitem:ListingCh):
 
 
 async def delete_by_id(db: Session, id: int):
-    stmt = select(Listing).where(Listing.ownerId == id)
-    result = await db.execute(stmt)
-    user_obj = result.scalar_one_or_none()
-
-    if user_obj:
-        await db.delete(user_obj)
-        await db.commit()
-        return "Done"
-
-    return "The Student doesn't exist"
+    async with db.begin():
+        stmt = select(Listing).where(Listing.ownerId == id)
+        result = await db.execute(stmt)
+        user_obj = result.scalar_one_or_none()
+        if user_obj:
+            await db.delete(user_obj)
+            await db.commit()
+            return {"status_code":status.HTTP_200_OK, "detail":{"message":"Item deleted successfully"}}
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail={"message":"The House doesn't exist"})
