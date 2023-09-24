@@ -1,5 +1,5 @@
 from sqlalchemy.orm import relationship
-from sqlalchemy import Column, Integer, ForeignKey,String, CheckConstraint, DateTime, Boolean
+from sqlalchemy import Column, Integer, ForeignKey,String, CheckConstraint, DateTime, Boolean, VARCHAR
 from datetime import datetime
 from databse.connection import Base
 
@@ -27,6 +27,7 @@ class User(Base):
     hashedPassword = Column(String, nullable=False)
     DoB = Column(String, nullable=False)
     gender = Column(String, CheckConstraint("gender IN ('Male', 'Female')", name="check_gender"))
+    session_uuid = Column(String, unique=True, nullable=True)
     createdAt = Column(DateTime, default=datetime.utcnow(),  nullable=False)
     updatedAt = Column(DateTime, default=datetime.utcnow(), nullable=False)
     listing = relationship("Listing", back_populates="user")
