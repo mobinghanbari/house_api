@@ -1,7 +1,7 @@
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Session
-
+from fastapi import status, HTTPException
 from api.users.schema import UserIn, UserCh
 from databse import User
 from .hash_engine import Hash
@@ -39,13 +39,14 @@ async def update_user_by_id(id: int, user: UserCh, db: AsyncSession):
 
 # Delete Users
 async def delete_user_by_id(id: int, db: Session):
-    stmt = select(User).where(User.id == id)
-    result = await db.execute(stmt)
-    user_obj = result.scalar_one_or_none()
+    async with db.begin():
+        stmt = select(User).where(User.id == id)
+        result = await db.execute(stmt)
+        user_obj = result.scalar_one_or_none()
 
 
-    if user_obj:
-        await db.delete(user_obj)
-        await db.commit()
-        return "Done"
-    return "The Student doesn't exist"
+        if user_obj:
+            await db.delete(user_obj)
+            await db.commit()
+            return {"status_code":status.HTTP_200_OK, "detail":{"message":"Item deleted successfully"}}
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail={"message":"The user doesn't exist"})
